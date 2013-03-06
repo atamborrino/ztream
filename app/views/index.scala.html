@@ -1,0 +1,82 @@
+@(trackInfo: Application.TrackMetaInfo)
+
+@main("Ztream") {
+  <div class="row">
+    <div class="span10 offset1">
+      <div class="description">
+        <h1>=>Ztream</h1>
+        <p>Ztream is a proof of concept for <strong>P2P Web music streaming</strong> built with <a href="http://www.webrtc.org/">WebRTC</a>, <a href="http://www.playframework.com/">Play Framework</a> (Scala) and <a href="http://reactivemongo.org/">ReactiveMongo</a> (a MongoDB non-blocking driver). It is inspired from the <a href="http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf">architecture of the Spotify's desktop client</a>, but transposed to the Web!</p>
+        <p>A peer streams musics from other peers and/or from the server (which streams them directly from MongoDB) in an adaptive way in order to ensure <strong>low latency</strong> for the user and <strong>low workload</strong> for the server. More technical details can be found on the <a href="https://github.com/atamborrino/ztream">Github page</a>.</p>
+        <p>Warning: you must use <strong>Chrome Canary</strong> to play the demo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span10 offset1">
+      <hr>
+      <div id="player">
+            <h2>Now you can stream Gangnam Style in a P2P way</h2>
+        <div class="row">  
+          <div class="span3">
+            <p><img src="@routes.Assets.at("images/play.png")" height="128" width="128" id="connect" alt="Play"/></p>
+            <div class="time">
+              <p><span id="currentTime">00:00</span> / <span id="totalTime">00:00</span></p>
+            </div>
+          </div>
+          <div class="span6">
+            <table class="table info">
+              <tr>
+                <td>Chunks downloaded</td><td><span id="chunkN">0</span> / <span id="totalNbChunk">@trackInfo.nbChunk</span></td>
+              </tr>
+              <tr>
+                <td>Streamed from server</td><td><span id="percentageServer">0</span> %</td>
+              </tr>
+              <tr>
+                <td>Streamed from peers</td><td><span id="percentagePeers">0</span> %</td>
+              </tr>
+              <tr>
+                <td>Seeder found</td><td id="connectedToSeeder">false</td>
+              </tr>
+              <tr>
+                <td>Peer(s) streaming from you</td><td id="nbLeechers">0</td>
+              </tr>
+              <tr>
+                <td>Total number of peers in the network</td><td id="totalNumberPeers">0</td>
+              </tr>
+              <tr>
+                <td>Track name</td><td id="trackName">@trackInfo.name</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>  
+  </div>
+  <div class="row">
+    <div class="span10 offset1">
+      <div class="indication">
+        <p> <strong>NB:</strong> If no seeder is found (i.e "Connected to a seeder" remains false while you are streaming), you can
+        simulate peers by opening Zstream in other tabs. Remember, a peer can become a seeder only once he has already cached 
+        the whole track.</p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span10 offset1">
+      <div class="center">
+        <a href="https://twitter.com/share" class="twitter-share-button" data-text="P2P Web music streaming built with #playframework #scala and #webRTC" data-via="altamborrino" data-size="large">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span10 offset1">
+      <div id="log">
+        <p> <em>Hint:</em> Open your console to see some logs on what is going on. </p>
+      </div>
+    </div>
+  </div>
+}
+
+
+ 

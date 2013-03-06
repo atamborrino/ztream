@@ -1,0 +1,56 @@
+.container-add {
+	font-family: 'Open Sans', sans-serif;
+}
+
+.description > h1 {
+	color: #555;
+	font-size: 72px;
+	text-align: center;
+	padding: 30px;
+	letter-spacing: -9px;
+	position: relative;
+	left: -20px;
+}
+
+.description > p {
+	font-size: 16px;
+	line-height: 24px;
+}
+
+#player > h2 {
+	color: #555;
+	font-size: 24px;
+	letter-spacing: -1px;
+	padding-bottom: 15px; 
+}
+
+.info {
+	font-size: 15px;
+}
+
+.indication {
+	padding-bottom: 10px;
+	font-size: 13px;
+}
+
+.time {
+	font-size: 20px;
+	padding-left: 5px;
+}
+
+.center {
+	text-align: center;
+}
+
+#log > p {
+	padding-top: 20px;
+	padding-bottom: 10px;  
+	color: #555;
+	font-size: 15px;
+}
+
+#connect:hover {
+	cursor: hand;
+	cursor: pointer;
+}
+
