@@ -26,10 +26,9 @@ object Global extends GlobalSettings {
       val CHUNK_SIZE = 256
       val contentType = "application/octet-stream"
       val enumFile = Enumerator.fromFile(Play.getFile("public/sounds/" + trackToAdd))
-
+      
       for {
-        _ <- gridFS.files.remove(BSONDocument())
-        _ <- gridFS.chunks.remove(BSONDocument())
+        _ <- Future.sequence(List(gridFS.files.remove(BSONDocument()), gridFS.chunks.remove(BSONDocument())))
         newReadFile <- gridFS.save(enumFile, DefaultFileToSave(trackToAdd, Some(contentType)), CHUNK_SIZE)
       } yield {
         Logger.info("Mongo cleaned, new track added")
