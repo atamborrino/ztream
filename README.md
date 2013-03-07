@@ -1,8 +1,8 @@
 # Ztream
 
-Ztream is a proof of concept for **P2P Web music streaming** built with [WebRTC](http://www.webrtc.org/), [Play Framework]("http://www.playframework.com/") (Scala) and [ReactiveMongo]("http://reactivemongo.org/") (a MongoDB non-blocking driver). It is inspired from the 
+Ztream is a proof of concept for **P2P Web music streaming** built with [WebRTC](http://www.webrtc.org/), [Play Framework]("http://www.playframework.com/"), Scala and [ReactiveMongo]("http://reactivemongo.org/") (a MongoDB non-blocking driver). It is inspired from the 
 [architecture of the Spotify's desktop client](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf), but transposed to the Web!  
-A peer streams musics from other peers and/or from the server (which streams them directly from MongoDB) in an adaptive way in order to ensure **low latency** for the user and **low workload** for the server.
+A peer streams musics from other peers and/or from the server (which streams them directly from MongoDB) in an adaptive way in order to ensure **low workload** for the server but still **low latency** for the user.
 
 DEMO
 
@@ -32,13 +32,15 @@ Check the code for more details!
 
 * For now, streamed tracks are cached in-memory on the client side (not a problem as the client can stream only one track in the demo). But for a multi-tracks Web client, the tracks should be cached in the FileSystem API instead of in-memory in order to have a persistent cache and more space.
 
-* Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce muisc streaming server workload by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
+* Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce music streaming server workload by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
 
 * When a peer already knows some other peers (= he has a PeerConnection with them due to a past leecher/seeder relation), he can directly ask these peers if they have some tracks without using the tracker, making this a lookup operation in a decentralized network between Web browsers!
 
 * The tracker is for now only one Akka actor. A distributed implementation would be better.
 
 * Need to modularize Javascript code...
+
+Feel free to fork and experiment =)
 
 ## Credits
 
