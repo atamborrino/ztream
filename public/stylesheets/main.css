@@ -1,36 +1,45 @@
-.container-add {
+.container {
 	font-family: 'Open Sans', sans-serif;
 }
 
-.description > h1 {
-	color: #555;
+.header {
+	width: 100%;
+	height: 100px;
+	background-color: #F1F1F1;
+	margin-bottom: 25px;
+	vertical-align: middle;
+	box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.main-title {
 	font-size: 72px;
-	text-align: center;
-	padding: 30px;
 	letter-spacing: -9px;
-	position: relative;
-	left: -20px;
+	margin-top: 27px;
+	text-shadow: 1px 0px 2px #808080;
+}
+
+.tweet {
+	margin-top: 41px;
 }
 
 .description > p {
-	font-size: 16px;
-	line-height: 24px;
+	font-size: 17px;
+	line-height: 25px;
 }
 
 #player > h2 {
-	color: #555;
-	font-size: 24px;
+	font-size: 25px;
 	letter-spacing: -1px;
 	padding-bottom: 15px; 
 }
 
 .info {
-	font-size: 15px;
+	font-size: 16px;
 }
 
 .indication {
 	padding-bottom: 10px;
-	font-size: 13px;
+	font-size: 14px;
 }
 
 .time {
