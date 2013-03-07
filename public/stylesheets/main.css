@@ -7,18 +7,17 @@
 	height: 100px;
 	background-color: #F1F1F1;
 	margin-bottom: 25px;
-	vertical-align: middle;
 	box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-.main-title {
+.header h1 {
 	font-size: 72px;
 	letter-spacing: -9px;
 	margin-top: 27px;
 	text-shadow: 1px 0px 2px #808080;
 }
 
-.tweet {
+.header .twitter-share-button {
 	margin-top: 41px;
 }
 
@@ -33,7 +32,7 @@
 	padding-bottom: 15px; 
 }
 
-.info {
+.data {
 	font-size: 16px;
 }
 
@@ -45,17 +44,6 @@
 .time {
 	font-size: 20px;
 	padding-left: 5px;
-}
-
-.center {
-	text-align: center;
-}
-
-#log > p {
-	padding-top: 20px;
-	padding-bottom: 10px;  
-	color: #555;
-	font-size: 15px;
 }
 
 #connect:hover {
