@@ -9,9 +9,9 @@
   // Holds the STUN server to use for PeerConnections.
   var SERVER = "stun:stun.l.google.com:19302";
 
-  // Leechers that wants a specific track from you.
-  // Map of [peerId,trackWanted] -> peerConnection
-  var leechers = {};
+  // Known peers that are wanting or wanted a specific track from you (leechers)
+  // Map of peerId -> peerConnection
+  var peers = {};
   var MAX_LEECHERS_PER_SEEDER = 2;
 
   // Seeder and wanted track information (the client is designed for only one track for now)
@@ -158,9 +158,8 @@
     // WebRTC callee side (seeder)
     else if (event === "rtcOffer" || event === "callerIceCandidate") {
       var leecherId = parsedWsEvt.from;
-      var trackWanted = data.trackName;
 
-      if (!leechers.hasOwnProperty([leecherId,data.trackName])){
+      if (!peers.hasOwnProperty(leecherId)) {
         //creation of new P2P connection
         var leecherConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},
           { optional:[ { RtpDataChannels: true } ]});
@@ -178,6 +177,7 @@
           trace("DataChannel opened");
           var chan = evt.channel;
           chan.binaryType = "arraybuffer";
+          var trackWanted = chan.label;
           var cancellable = null;
           chan.onmessage = function (evt) {
             trace("Rcving P2P stream request");
@@ -215,15 +215,14 @@
           chan.onclose = function () {
             trace("datachannel closed");
             nbCurrentLeechers -= 1;
-            delete leechers[[leecherId,trackWanted]];
             $("#nbLeechers").text(nbCurrentLeechers);
           };
         };
 
-        leechers[[leecherId,trackWanted]] = leecherConn;
+        peers[leecherId] = leecherConn;
       }
 
-      var leecherConn = leechers[[leecherId,data.trackName]];
+      var leecherConn = peers[leecherId];
       if (event === "rtcOffer") {
         leecherConn.setRemoteDescription(new RTCSessionDescription(data.sdp), function() {
           trace("rtc offer set"); 
