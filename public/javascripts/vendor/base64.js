@@ -58,18 +58,3 @@
         return arraybuffer;
     };
 }) (typeof exports === 'undefined' ? this['base64'] = {} : exports);
-//})("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-
-//TEST
-(function() {
-
-    function onDataChann() {
-        var t = 0;
-        function onDataMess() {
-            t++;
-            alert(t);
-        }
-        onDataMess();
-    }
-
-})();
