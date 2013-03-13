@@ -57,6 +57,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   var ctrlSocket = new WebSocket(u.wsUrl("control")); 
   var streamSocket = new WebSocket(u.wsUrl("stream"));
   streamSocket.binaryType = 'arraybuffer';
+  var HEARTBEAT_INTERVAL = 9000;
 
 
   // leecher side
@@ -204,10 +205,9 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
   // control WS events
   ctrlSocket.onopen = function() {
-    ctrlSocket.send(u.mess("connect",{}));
     setInterval(function() {
       ctrlSocket.send(u.mess("heartbeat",{}));
-    }, 9000);
+    }, HEARTBEAT_INTERVAL);
   };
   ctrlSocket.onmessage = function(evt) {
     var parsedWsEvt = JSON.parse(evt.data);

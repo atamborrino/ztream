@@ -15,6 +15,9 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 import tracker.Tracker._
 import stream.ServerStream
+import akka.pattern.ask
+import akka.util.Timeout
+import akka.actor._
 
 object Application extends Controller {
   import play.api.libs.concurrent.Execution.Implicits._
@@ -64,48 +67,46 @@ object Application extends Controller {
 
   // CONTROL
   def control = WebSocket.using[JsValue] { request =>
-    val id = UUID.randomUUID().toString
+    // new client
+    implicit val timeout = Timeout(5 seconds)
+    val myId = UUID.randomUUID().toString
     val (out, channel) = Concurrent.broadcast[JsValue]
 
-    val in = Iteratee.foreach[JsValue] { js =>
-      val data = (js \ "data")
-      (js \ "event") match {
-        case (JsString("connect")) =>
-          tracker ! Connect(id: String, channel)
+    val in = (tracker ? NewPeer(myId, channel)).mapTo[ActorRef] map { mySelf =>
+      Iteratee.foreach[JsValue] { js =>
+        val data = (js \ "data")
+        (js \ "event") match {
+          
+          case (JsString("streamEnded")) =>
+            (data \ "trackName").asOpt[String] foreach { tracker ! StreamEnded(_, mySelf) }
 
-        case (JsString("streamEnded")) =>
-          (data \ "trackName").asOpt[String] foreach { trackName =>
-            tracker ! StreamEnded(trackName, channel)
-          }
+          case (JsString("seekPeer")) =>
+            (data \ "trackName").asOpt[String] foreach { tracker ! SeekPeer(_, myId) }
 
-        case (JsString("seekPeer")) =>
-          (data \ "trackName").asOpt[String] foreach { trackName =>
-            tracker ! SeekPeer(trackName, channel, id)
-          }
+          case (JsString("respReqPeer")) =>
+            for {
+              trackName <- (data \ "trackName").asOpt[String]
+              seekId <- (data \ "seekId").asOpt[String]
+              seekerId <- (data \ "seekerId").asOpt[String]
+            } tracker ! RespReqPeer(seekId, myId, seekerId, trackName)
 
-        case (JsString("respReqPeer")) =>
-          for {
-            trackName <- (data \ "trackName").asOpt[String]
-            seekId <- (data \ "seekId").asOpt[String]
-            seekerId <- (data \ "seekerId").asOpt[String]
-          } tracker ! RespReqPeer(seekId, id, seekerId, trackName)
+          case (JsString("forward")) =>
+            for {
+              to <- (js \ "to").asOpt[String]
+              eventToFwd <- (data \ "event").asOpt[String]
+              dataToFwd <- (data \ "data").asOpt[JsValue]
+            } tracker ! Forward(to, myId, eventToFwd, dataToFwd)
 
-        case (JsString("forward")) =>
-          for {
-            to <- (js \ "to").asOpt[String]
-            eventToFwd <- (data \ "event").asOpt[String]
-            dataToFwd <- (data \ "data").asOpt[JsValue]
-          } tracker ! Forward(to, from = id, eventToFwd, dataToFwd)
+          case (JsString("heartbeat")) =>
+            mySelf ! Heartbeat
 
-        case (JsString("heartbeat")) =>
-          tracker ! Heartbeat(id)
+          case _ =>
 
-        case _ =>
+        }
+      } mapDone { _ => mySelf ! PoisonPill }
+    }
 
-      }
-    } mapDone { _ => tracker ! Disconnect(id, channel) }
-
-    (in, out)
+    (Iteratee.flatten(in), out)
   }
 
 }

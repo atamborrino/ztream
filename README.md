@@ -17,7 +17,7 @@ Here is what a peer does when his user chooses a track to listen to:
 
 1. If the track is in his local cache, he just plays it from there
 2. Otherwise, he will ask the server for the first chunks of the track (equivalent to ~10s) so that the playback can begin instantly (as the server is fast)
-3. In the meantime, the client asks the tracker (an Akka actor in the server-side) to find a peer that has this track
+3. In the meantime, the client asks the tracker (Akka actors server-side) to find a peer that has this track
 4. The tracker asks the last 10 peers that have entirely streamed the track previously if they can stream it (a peer can not stream to more than x other peers). The first to respond positively to the server (= the seeder) is selectioned and its id is sent back the the inital peer (= the leecher).
 5. A WebRTC PeerConnection is made between the leecher and the seeder, and the leecher can start streaming chunks of the track from the seeder via a binary DataChannel.
 6. At any time, if there is only around 3 seconds left in the playback buffer, the leecher stops streaming from the seeder (if there is any) and asks the server the next chunks of the track. This is a kind of emergency mode that occurs when no seeder is found or when the seeder is streaming too slowly. After the receiving of these new chunks, the leecher starts again streaming from the seeder or keep on searching for one.
@@ -35,10 +35,6 @@ Check the code for more details!
 * Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce music streaming server workload by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
 
 * When a peer already knows some other peers (= he has a PeerConnection with them due to a past leecher/seeder relation), he can directly ask these peers if they have some tracks without using the tracker, making this a lookup operation in a decentralized network between Web browsers!
-
-* The tracker is for now only one Akka actor. A distributed implementation would be better.
-
-* Need to modularize Javascript code...
 
 Feel free to fork and experiment =)
 
