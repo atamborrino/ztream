@@ -46,7 +46,7 @@
 	padding-left: 5px;
 }
 
-#connect:hover {
+#playButton:hover {
 	cursor: hand;
 	cursor: pointer;
 }

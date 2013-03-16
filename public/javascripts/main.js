@@ -61,7 +61,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
 
   // leecher side
-  function streamRequestP2P(seederConn) {
+  function P2PstreamRequest(seederConn) {
     seedChan = seederConn.createDataChannel(trackName,{ reliable : false });
     seedChan.binaryType = "arraybuffer";
 
@@ -122,7 +122,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   }
 
   // seeder side
-  function onStreamRequestP2P(evt) { 
+  function onP2PstreamRequest(evt) { 
     u.trace("DataChannel opened");
     var chan = evt.channel;
     chan.binaryType = "arraybuffer";
@@ -257,7 +257,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
         });
       };
 
-      streamRequestP2P(seederConn);
+      P2PstreamRequest(seederConn);
     }
 
     // WebRTC callee side (seeder)
@@ -278,7 +278,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
           }
         };
 
-        leecherConn.ondatachannel = function(evt) { onStreamRequestP2P(evt); };
+        leecherConn.ondatachannel = function(evt) { onP2PstreamRequest(evt); };
         peers[leecherId] = leecherConn;
       }
 
@@ -357,7 +357,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
 
   // User events
-  $("#connect").click(function(){
+  $("#playButton").click(function(){
     if (audio === null || audio.currentTime === 0 || audio.ended) {
       // new playback of the track
       $("#track").remove();
@@ -382,9 +382,9 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       },false);
 
       audio.addEventListener("ended", function(){
-        $("#connect").attr("src","assets/images/play.png");
+        $("#playButton").attr("src","assets/images/play.png");
         if (!($("#fromCache").length)) {
-          $("#connect").after('<span id="fromCache">from cache</span>');
+          $("#playButton").after('<span id="fromCache">from cache</span>');
         }
       },false);
 
@@ -409,17 +409,15 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       },false);
 
       audio.play();
-      $("#connect").attr("src","assets/images/pause.png");
+      $("#playButton").attr("src","assets/images/pause.png");
 
     } else {
       // play/pause
       if (audio.paused){
-        //$("#connect").text("Pause");
-        $("#connect").attr("src","assets/images/pause.png");
+        $("#playButton").attr("src","assets/images/pause.png");
         audio.play();
       } else {
-        //$("#connect").text("Play");
-        $("#connect").attr("src","assets/images/play.png");
+        $("#playButton").attr("src","assets/images/play.png");
         audio.pause();
       }
     }
