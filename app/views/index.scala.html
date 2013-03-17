@@ -8,7 +8,7 @@
         <h1 class="main-title">=>Ztream</h1>
       </div>
       <div class="span4">
-        <a href="https://twitter.com/share" class="twitter-share-button pull-right" data-text="P2P Web music streaming built with #playframework #scala and #webRTC" data-via="altamborrino" data-size="large">Tweet</a>
+        <a href="https://twitter.com/share" class="twitter-share-button pull-right" data-text="P2P Web music streaming built with #WebRTC and #PlayFramework #Scala" data-via="altamborrino" data-size="large">Tweet</a>
       </div>
     </div>
     </div>
@@ -19,7 +19,9 @@
         <div class="description">
           <p>Ztream is a proof of concept for <strong>P2P Web music streaming</strong> built with <a href="http://www.playframework.com/">Play Framework</a> (Scala), <a href="http://www.webrtc.org/">WebRTC</a>, <a href="https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html">Media Source</a> and <a href="http://reactivemongo.org/">ReactiveMongo</a>. It is inspired from the <a href="http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf">architecture</a> of the Spotify's desktop client, but transposed to the Web!</p>
           <p>A peer streams musics from other peers and/or from the server (which streams them directly from MongoDB) in an adaptive and transparent way in order to ensure <strong>low workload</strong> for the server but still <strong>low latency</strong> for the user. More technical details can be found on the <a href="https://github.com/atamborrino/ztream">Github page</a>.</p>
-          <p>Warning: you need <strong>Chrome/Chromium >= ?</strong> to play the demo, for instance <a href="https://www.google.com/intl/en/chrome/browser/canary.html">Chrome Canary</a> (sadly Firefox does not support Media Source yet).</p>
+          <p class="hidden" id="not-compatible">Warning: your browser is <span class="warning">not compatible</span> with Ztream. You need to use Chrome/Chromium >= 27, 
+          for instance <a href="https://www.google.com/intl/en/chrome/browser/canary.html">Chrome Canary</a> 
+          (sadly Firefox does not support Media Source yet).</p>
         </div>
       </div>
     </div>
@@ -68,7 +70,7 @@
       <div class="span10 offset1">
         <div class="indication">
           <p> <strong>NB:</strong> If no seeder is found (i.e "Seeder found" remains false while you are streaming), you can
-          simulate peers by opening Zstream in other tabs. Remember, a peer can become a seeder only once he has already cached 
+          simulate peers by opening Ztream in other tabs. Remember, a peer can become a seeder only once he has already cached 
           the whole track.</p>
           <p> Open your console to see some logs on what is going on. </p>
           <span id="forkongithub"><a href="https://github.com/atamborrino/ztream">Fork me on GitHub</a></span>

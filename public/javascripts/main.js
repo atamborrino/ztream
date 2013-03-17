@@ -12,13 +12,31 @@ requirejs.config({
 require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $) { 
   "use strict";
 
-  // Compatibilty
-  var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-  var MediaSource = window.MediaSource || window.WebKitMediaSource;
-
-  // Web RTC config
-  // Holds the STUN server to use for PeerConnections.
+  // STUN server
   var SERVER = "stun:stun.l.google.com:19302";
+
+  // Check compatibilty
+  var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+  var MediaSource = window.MediaSource || window.WebKitMediaSource || window.mozMediaSource;
+  var compatible = false;
+  var pc;
+  try {
+    if (RTCPeerConnection && MediaSource) {
+      pc = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
+      var dc = pc.createDataChannel("test", {reliable: false});
+      if (dc) {
+        compatible = true;
+      } 
+    }
+  } catch (e) {
+  } finally {
+    if (pc) {
+      pc.close();
+    }
+  }
+  if (!compatible) {
+    $("#not-compatible").removeClass("hidden");
+  }
 
   // Known peers that are wanting or wanted a specific track from you (leechers)
   // Map of peerId -> peerConnection
@@ -357,69 +375,73 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
 
   // User events
-  $("#playButton").click(function(){
-    if (audio === null || audio.currentTime === 0 || audio.ended) {
-      // new playback of the track
-      $("#track").remove();
-      $("#player").prepend('<video id="track"></video>'); // use of video tag as an audio tag
-      $("#track").hide();
-
-      audio = $('#track').get(0);
-      mediaSource = new MediaSource();
-      audio.src = window.URL.createObjectURL(mediaSource);
-
-      audio.addEventListener("canplay", function() {
-        $("#totalTime").text(u.formatTime(audio.duration));
-      },false);
-
-      audio.addEventListener("timeupdate", function() {
-        // setting emergency streaming from server if there is less
-        // than 3 seconds until the end of the buffer
-        if (isEmergencyMode()) {
-          streamFromServer(track.length,track.length+CHUNK_WINDOW);
-        }
-        $("#currentTime").text(u.formatTime(audio.currentTime));
-      },false);
-
-      audio.addEventListener("ended", function(){
-        $("#playButton").attr("src","assets/images/play.png");
-        if (!($("#fromCache").length)) {
-          $("#playButton").after('<span id="fromCache">from cache</span>');
-        }
-      },false);
-
-      mediaSource.addEventListener('webkitsourceopen', function(e) {
-        sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs="vorbis"');
-        if (track.length > 0) {
-          // play from cache
-          for (var i = 0; i < track.length; i++) {
-            appendToPlayback(track[i]);
-          }
-          if (streamEnded()) {
-            mediaSource.endOfStream();
-          }
-        }
-        else {
-          streamFromServer(0,CHUNK_WINDOW);
-        }
-        
-        if (track.length < totalNChunk) {
-          seekPeer();
-        }
-      },false);
-
-      audio.play();
-      $("#playButton").attr("src","assets/images/pause.png");
-
+  $("#playButton").click(function() {
+    if (!compatible) {
+      $(".warning").fadeTo(250,0.01).fadeTo(250,1);
     } else {
-      // play/pause
-      if (audio.paused){
-        $("#playButton").attr("src","assets/images/pause.png");
+      if (audio === null || audio.currentTime === 0 || audio.ended) {
+        // new playback of the track
+        $("#track").remove();
+        $("#player").prepend('<video id="track"></video>'); // use of video tag as an audio tag
+        $("#track").hide();
+
+        audio = $('#track').get(0);
+        mediaSource = new MediaSource();
+        audio.src = window.URL.createObjectURL(mediaSource);
+
+        audio.addEventListener("canplay", function() {
+          $("#totalTime").text(u.formatTime(audio.duration));
+        },false);
+
+        audio.addEventListener("timeupdate", function() {
+          // setting emergency streaming from server if there is less
+          // than 3 seconds until the end of the buffer
+          if (isEmergencyMode()) {
+            streamFromServer(track.length,track.length+CHUNK_WINDOW);
+          }
+          $("#currentTime").text(u.formatTime(audio.currentTime));
+        },false);
+
+        audio.addEventListener("ended", function(){
+          $("#playButton").attr("src","assets/images/play.png");
+          if (!($("#fromCache").length)) {
+            $("#playButton").after('<span id="fromCache">from cache</span>');
+          }
+        },false);
+
+        mediaSource.addEventListener('webkitsourceopen', function(e) {
+          sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs="vorbis"');
+          if (track.length > 0) {
+            // play from cache
+            for (var i = 0; i < track.length; i++) {
+              appendToPlayback(track[i]);
+            }
+            if (streamEnded()) {
+              mediaSource.endOfStream();
+            }
+          }
+          else {
+            streamFromServer(0,CHUNK_WINDOW);
+          }
+          
+          if (track.length < totalNChunk) {
+            seekPeer();
+          }
+        },false);
+
         audio.play();
+        $("#playButton").attr("src","assets/images/pause.png");
+
       } else {
-        $("#playButton").attr("src","assets/images/play.png");
-        audio.pause();
-      }
+        // play/pause
+        if (audio.paused){
+          $("#playButton").attr("src","assets/images/pause.png");
+          audio.play();
+        } else {
+          $("#playButton").attr("src","assets/images/play.png");
+          audio.pause();
+        }
+      } 
     }
     return false;
   });

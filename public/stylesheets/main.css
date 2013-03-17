@@ -52,6 +52,14 @@
 	cursor: pointer;
 }
 
+.hidden { 
+	display: none; 
+}
+
+.warning {
+	color: #C0392B;
+}
+
 /*Fork me on Github CSS3 ribbon*/
 #forkongithub a{background:#000;color:#F1F1F1;text-decoration:none;font-family:'Open Sans', sans-serif;text-align:center;padding:5px 40px;font-size:1rem;line-height:2rem;position:relative;transition:0.5s;}
 #forkongithub a:hover{background:#000;color:#fff;}

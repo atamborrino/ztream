@@ -33,7 +33,7 @@ object ServerStream {
     }
   }
 
-  // slight modification of the original GridFS.enumerate method in order to retrieve a serie of chunks (not the whole file)
+  // slight modification of the original GridFS.enumerate method in order to retrieve a series of chunks (not the whole file)
   private def enumerate(file: ReadFile[_ <: BSONValue], chunks: Collection, from: Int, to: Int): Enumerator[Array[Byte]] = {
     val selector = BSONDocument(
       "$query" -> BSONDocument(
