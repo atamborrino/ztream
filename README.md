@@ -1,6 +1,6 @@
 # Ztream
 
-Ztream is a proof of concept for **P2P Web music streaming** built with [Play Framework]("http://www.playframework.com/") Scala, [WebRTC](http://www.webrtc.org/), [Media Source]("https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html") and [ReactiveMongo]("http://reactivemongo.org/"). It is inspired from the 
+Ztream is a proof of concept for **P2P Web music streaming** built with [WebRTC](http://www.webrtc.org/), [Media Source API]("https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html"), [Play Framework]("http://www.playframework.com/") / [Akka](http://akka.io/) (Scala) and [ReactiveMongo]("http://reactivemongo.org/"). It is inspired from the 
 [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but transposed to the Web!  
 A peer streams musics from other peers and/or from the server (which streams them directly from MongoDB) in an adaptive and transparent way in order to ensure **low workload** for the server but still **low latency** for the user.
 
