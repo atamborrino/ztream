@@ -36,6 +36,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   }
   if (!compatible) {
     $("#not-compatible").removeClass("hidden");
+    $("#totalNumberPeers").text("-");
   }
 
   // Known peers that are wanting or wanted a specific track from you (leechers)
@@ -58,6 +59,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   // streaming from server
   var CHUNK_WINDOW = 1400; // number of chunks we ask to server each time we need to
   var chunkNInsideWindow = -1; // higher chunk number received inside the current chunk window streamed from server
+  var HEARTBEAT_INTERVAL = 9000;
 
   var MIN_BUFFER_TIME = 3; // min ahead time (seconds) authorized for the buffer. If less, we go in emergency mode.
 
@@ -70,12 +72,6 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   // info for UI
   var chunkFromServer = 0;
   var chunkFromPeers = 0;
-
-  // websockets
-  var ctrlSocket = new WebSocket(u.wsUrl("control")); 
-  var streamSocket = new WebSocket(u.wsUrl("stream"));
-  streamSocket.binaryType = 'arraybuffer';
-  var HEARTBEAT_INTERVAL = 9000;
 
 
   // leecher side
@@ -221,156 +217,164 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   }
 
 
-  // control WS events
-  ctrlSocket.onopen = function() {
-    setInterval(function() {
-      ctrlSocket.send(u.mess("heartbeat",{}));
-    }, HEARTBEAT_INTERVAL);
-  };
-  ctrlSocket.onmessage = function(evt) {
-    var parsedWsEvt = JSON.parse(evt.data);
-    var event = parsedWsEvt.event;
-    var data = parsedWsEvt.data;
-    //u.trace("Rcv: "+evt.data);
+  // Webscocket connections
+  if (compatible) {
+    var ctrlSocket = new WebSocket(u.wsUrl("control")); 
+    var streamSocket = new WebSocket(u.wsUrl("stream"));
+    streamSocket.binaryType = 'arraybuffer';
 
-    if (event === "reqPeer") {
-      var trackWanted = data.trackName;
-      // testing if we have the track and if we dont stream to too many peers yet
-      if (trackWanted === trackName && track.length === totalNChunk && nbCurrentLeechers < MAX_LEECHERS_PER_SEEDER) {
-        // ok
-        ctrlSocket.send(u.mess("respReqPeer",
-          {"trackName":trackWanted,"seekId":data.seekId,"seekerId":data.seekerId}));
+    // control WS events
+    ctrlSocket.onopen = function() {
+      setInterval(function() {
+        ctrlSocket.send(u.mess("heartbeat",{}));
+      }, HEARTBEAT_INTERVAL);
+    };
+    ctrlSocket.onmessage = function(evt) {
+      var parsedWsEvt = JSON.parse(evt.data);
+      var event = parsedWsEvt.event;
+      var data = parsedWsEvt.data;
+      //u.trace("Rcv: "+evt.data);
+
+      if (event === "reqPeer") {
+        var trackWanted = data.trackName;
+        // testing if we have the track and if we dont stream to too many peers yet
+        if (trackWanted === trackName && track.length === totalNChunk && nbCurrentLeechers < MAX_LEECHERS_PER_SEEDER) {
+          // ok
+          ctrlSocket.send(u.mess("respReqPeer",
+            {"trackName":trackWanted,"seekId":data.seekId,"seekerId":data.seekerId}));
+        }
       }
-    }
 
-    else if (event === "peerNotFound") {
-      peerRequested = false;
-    }
+      else if (event === "peerNotFound") {
+        peerRequested = false;
+      }
 
-    else if (event === "info") {
-      $("#totalNumberPeers").text(data.peers);
-    }
+      else if (event === "info") {
+        $("#totalNumberPeers").text(data.peers);
+      }
 
-    // WebRTC caller side (leecher)
-    else if (event === "peerFound" && seederConn === null) {
-      // seeder found
-      peerRequested = false;
-      var seederId = data.seederId;
+      // WebRTC caller side (leecher)
+      else if (event === "peerFound" && seederConn === null) {
+        // seeder found
+        peerRequested = false;
+        var seederId = data.seederId;
 
-      seederConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
-      u.trace("establishing P2P connection caller side (leecher)");
+        seederConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
+        u.trace("establishing P2P connection caller side (leecher)");
 
-      seederConn.onicecandidate = function(iceEvt) {
-          if (iceEvt.candidate) {
-            ctrlSocket.send(u.fwdMess(seederId,"callerIceCandidate",
-              {"trackName":trackName,"candidate": iceEvt.candidate }));
-          }
-      };
-      seederConn.onnegotiationneeded = function() {
-        seederConn.createOffer(function(desc){
-            seederConn.setLocalDescription(desc, function() {
-              ctrlSocket.send(u.fwdMess(seederId,"rtcOffer",
-                {"trackName":trackName,"sdp": desc }));
-            });
-        });
-      };
-
-      P2PstreamRequest(seederConn);
-    }
-
-    // WebRTC callee side (seeder)
-    else if (event === "rtcOffer" || event === "callerIceCandidate") {
-      var leecherId = parsedWsEvt.from;
-
-      if (!peers.hasOwnProperty(leecherId)) {
-        //creation of new P2P connection
-        var leecherConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},
-          { optional:[ { RtpDataChannels: true } ]});
-
-        leecherConn.onicecandidate = function (iceEvt) {
-          if (iceEvt.candidate) {
-            ctrlSocket.send(u.fwdMess(leecherId,"calleeIceCandidate",
-              {"trackName":trackName,"candidate": iceEvt.candidate }));
-          } else {
-            u.trace("No more Ice candidate");
-          }
+        seederConn.onicecandidate = function(iceEvt) {
+            if (iceEvt.candidate) {
+              ctrlSocket.send(u.fwdMess(seederId,"callerIceCandidate",
+                {"trackName":trackName,"candidate": iceEvt.candidate }));
+            }
+        };
+        seederConn.onnegotiationneeded = function() {
+          seederConn.createOffer(function(desc){
+              seederConn.setLocalDescription(desc, function() {
+                ctrlSocket.send(u.fwdMess(seederId,"rtcOffer",
+                  {"trackName":trackName,"sdp": desc }));
+              });
+          });
         };
 
-        leecherConn.ondatachannel = function(evt) { onP2PstreamRequest(evt); };
-        peers[leecherId] = leecherConn;
+        P2PstreamRequest(seederConn);
       }
 
-      var leecherConn = peers[leecherId];
-      if (event === "rtcOffer") {
-        leecherConn.setRemoteDescription(new RTCSessionDescription(data.sdp), function() {
-          u.trace("rtc offer set"); 
-          leecherConn.createAnswer(function(desc){
-            leecherConn.setLocalDescription(desc, function() {
-              ctrlSocket.send(u.fwdMess(leecherId,"rtcAnswer",
-                {"trackName":trackName,"sdp": desc }));
+      // WebRTC callee side (seeder)
+      else if (event === "rtcOffer" || event === "callerIceCandidate") {
+        var leecherId = parsedWsEvt.from;
+
+        if (!peers.hasOwnProperty(leecherId)) {
+          //creation of new P2P connection
+          var leecherConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},
+            { optional:[ { RtpDataChannels: true } ]});
+
+          leecherConn.onicecandidate = function (iceEvt) {
+            if (iceEvt.candidate) {
+              ctrlSocket.send(u.fwdMess(leecherId,"calleeIceCandidate",
+                {"trackName":trackName,"candidate": iceEvt.candidate }));
+            } else {
+              u.trace("No more Ice candidate");
+            }
+          };
+
+          leecherConn.ondatachannel = function(evt) { onP2PstreamRequest(evt); };
+          peers[leecherId] = leecherConn;
+        }
+
+        var leecherConn = peers[leecherId];
+        if (event === "rtcOffer") {
+          leecherConn.setRemoteDescription(new RTCSessionDescription(data.sdp), function() {
+            u.trace("rtc offer set"); 
+            leecherConn.createAnswer(function(desc){
+              leecherConn.setLocalDescription(desc, function() {
+                ctrlSocket.send(u.fwdMess(leecherId,"rtcAnswer",
+                  {"trackName":trackName,"sdp": desc }));
+              });
             });
           });
-        });
-      }
-      else if (event === "callerIceCandidate") {
-        leecherConn.addIceCandidate(new RTCIceCandidate(data.candidate));
-      }
-    }
-
-    // WebRTC caller side (leecher)
-    else if (event === "rtcAnswer" && seederConn !== null) {
-      seederConn.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    }
-
-    // WebRTC caller side (leecher)
-    else if (event === "calleeIceCandidate" && seederConn !== null) {
-      seederConn.addIceCandidate(new RTCIceCandidate(data.candidate));
-    }
-
-  };
-
-
-  // stream WS events
-  streamSocket.onmessage = function (event) {
-    var chunk = event.data;
-    track.push(chunk);
-    appendToPlayback(chunk);
-    chunkNInsideWindow += 1;
-    chunkFromServer += 1;
-
-    $("#chunkN").text(track.length);
-    $("#percentageServer").text(Math.floor((chunkFromServer+1)*100/totalNChunk));
-
-    if (streamEnded()){
-      chunkNInsideWindow = -1;
-      ctrlSocket.send(u.mess("streamEnded",{"trackName":trackName}));
-      emergencyMode = false;
-      mediaSource.endOfStream();
-      $("#totalTime").text(u.formatTime(audio.duration)); // hack, should not be needed
-    } else if (chunkNInsideWindow >= CHUNK_WINDOW) {
-      // end of the stream response of CHUNK_WINDOW chunks
-      chunkNInsideWindow = -1;
-      emergencyMode = false;
-      // recontact seeder to ask for chunks
-      if (seedChan !== null && seedChan.readyState === "open") {
-        if (seederIsSuspected) {
-          u.trace("seeder is inactive");
-          seedChan.close();
-          seederConn.close();
-          seedChan = null;
-          seederConn = null;
-          seederIsSuspected = false;
-          $("#connectedToSeeder").text(false);
-          seekPeer();
-        } else {
-          u.trace("Sending P2P stream request from "+track.length);
-          seedChan.send(JSON.stringify({"from":track.length}));
-          seederIsSuspected = true;
         }
-      } else {
-        seekPeer();
+        else if (event === "callerIceCandidate") {
+          leecherConn.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      }
+
+      // WebRTC caller side (leecher)
+      else if (event === "rtcAnswer" && seederConn !== null) {
+        seederConn.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      }
+
+      // WebRTC caller side (leecher)
+      else if (event === "calleeIceCandidate" && seederConn !== null) {
+        seederConn.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+
+    };
+
+
+    // stream WS events
+    streamSocket.onmessage = function (event) {
+      var chunk = event.data;
+      track.push(chunk);
+      appendToPlayback(chunk);
+      chunkNInsideWindow += 1;
+      chunkFromServer += 1;
+
+      $("#chunkN").text(track.length);
+      $("#percentageServer").text(Math.floor((chunkFromServer+1)*100/totalNChunk));
+
+      if (streamEnded()){
+        chunkNInsideWindow = -1;
+        ctrlSocket.send(u.mess("streamEnded",{"trackName":trackName}));
+        emergencyMode = false;
+        mediaSource.endOfStream();
+        $("#totalTime").text(u.formatTime(audio.duration)); // hack, should not be needed
+      } else if (chunkNInsideWindow >= CHUNK_WINDOW) {
+        // end of the stream response of CHUNK_WINDOW chunks
+        chunkNInsideWindow = -1;
+        emergencyMode = false;
+        // recontact seeder to ask for chunks
+        if (seedChan !== null && seedChan.readyState === "open") {
+          if (seederIsSuspected) {
+            u.trace("seeder is inactive");
+            seedChan.close();
+            seederConn.close();
+            seedChan = null;
+            seederConn = null;
+            seederIsSuspected = false;
+            $("#connectedToSeeder").text(false);
+            seekPeer();
+          } else {
+            u.trace("Sending P2P stream request from "+track.length);
+            seedChan.send(JSON.stringify({"from":track.length}));
+            seederIsSuspected = true;
+          }
+        } else {
+          seekPeer();
+        }
       }
     }
+    
   }
 
 
