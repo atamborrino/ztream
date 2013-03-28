@@ -57,7 +57,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   var sourceBuffer = null;
 
   // streaming from server
-  var CHUNK_WINDOW = 1400; // number of chunks we ask to server each time we need to
+  var CHUNK_WINDOW = 700; // number of chunks we ask to server each time we need to
   var chunkNInsideWindow = -1; // higher chunk number received inside the current chunk window streamed from server
   var HEARTBEAT_INTERVAL = 9000;
 
@@ -156,7 +156,8 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       $("#nbLeechers").text(nbCurrentLeechers);
 
       function sendProgressively() {
-        for(var i = 0; (chunkI < track.length && i < 9); i++) {
+        // goal rate: 50 kb/s
+        for(var i = 0; (chunkI < track.length && i < 100); i++) {
           var chunkNum = new Uint32Array(1);
           chunkNum[0] = chunkI;
           var chunk = u.UInt32concat(chunkNum, new Uint32Array(track[chunkI])).buffer;
@@ -172,8 +173,8 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
           $("#nbLeechers").text(nbCurrentLeechers);
         }
       }
-      //sendProgressively();
-      cancellable = setInterval(sendProgressively, 300);
+      sendProgressively();
+      cancellable = setInterval(sendProgressively, 1000);
     };
 
     chan.onclose = function () {

@@ -29,7 +29,7 @@ object Application extends Controller {
 
   def index = Action {
     // only one track for now
-    val trackName = "gaaTest.webm"
+    val trackName = "gangnamstyle.webm"
     Async {
       ServerStream.getNbChunks(trackName) map { nbChunk =>
         Ok(views.html.index(TrackMetaInfo(trackName, nbChunk)))

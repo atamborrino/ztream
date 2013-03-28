@@ -22,8 +22,8 @@ object Global extends GlobalSettings {
       val db = ReactiveMongoPlugin.db
       val gridFS = new GridFS(db, "tracks")
 
-      val trackToAdd = "gaaTest.webm"
-      val CHUNK_SIZE = 256
+      val trackToAdd = "gangnamstyle.webm"
+      val CHUNK_SIZE = 512
       val contentType = "application/octet-stream"
       val enumFile = Enumerator.fromFile(Play.getFile("public/sounds/" + trackToAdd))
       
