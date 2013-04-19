@@ -15,10 +15,10 @@ object Tracker {
   class Tracker extends Actor {
     import context._
 
-    // map trackName to peers that have recently streamed it (20 last peers)
-    var trackingTable = Map.empty[String, IndexedSeq[ActorRef]]
+    // map a track name to peers that have streamed it and are still online
+    var trackingTable = Map.empty[String, Seq[ActorRef]]
 
-    // map of "on-going seek events" IDs in order to have a one-to-any protocol when the tracker seeks a peer
+    // map a "on-going seek event" to the Timeout of this seek event
     var seekIds = Map.empty[String, Cancellable]
 
     def receive = {
@@ -32,13 +32,10 @@ object Tracker {
 
       case StreamEnded(trackName, peer) =>
         val newTrackingTable = trackingTable.get(trackName) map { peerList =>
-          val newPeerList = { 
-            if (peerList.length < 20) peer +: peerList      
-            else peer +: peerList.dropRight(1)
-          }
+          val newPeerList = peer +: peerList
           trackingTable + (trackName -> newPeerList)
         } getOrElse {
-          trackingTable + (trackName -> IndexedSeq(peer))
+          trackingTable + (trackName -> Seq(peer))
         }
         trackingTable = newTrackingTable
 

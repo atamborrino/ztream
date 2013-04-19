@@ -68,7 +68,7 @@ object Application extends Controller {
   // CONTROL
   def control = WebSocket.using[JsValue] { request =>
     // new client
-    implicit val timeout = Timeout(5 seconds)
+    implicit val timeout = Timeout(10 seconds)
     val myId = UUID.randomUUID().toString
     val (out, channel) = Concurrent.broadcast[JsValue]
 
