@@ -27,7 +27,7 @@ Moreover, on the server-side, upon a stream request of an user (random access fr
 Check the code for more details!
 
 Note on audio format: Media Source currently only supports webm files (put in a html video element even for audio). You can easily convert your music to webm via ffmpeg:
-    ffmpeg -i music.ogg -strict -2 music.webm
+```ffmpeg -i music.ogg -strict -2 music.webm```
 
 ## TODOs / Ideas
 
@@ -36,6 +36,8 @@ Note on audio format: Media Source currently only supports webm files (put in a 
 * When a peer already knows some other peers (= he has a PeerConnection with them due to a past leecher/seeder relation), he can directly ask these peers if they have some tracks without using the tracker (i.e a decentralized P2P network is built, like in Spotify).
 
 * Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce streaming server bandwidth costs by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
+
+* Need to moduralize better client side code...
 
 Feel free to fork and experiment =)
 
