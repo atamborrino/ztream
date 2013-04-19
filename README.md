@@ -4,7 +4,7 @@ Ztream is a proof of concept for **P2P Web music streaming** built with [WebRTC]
 Streaming is performed by a combination of client-server access and P2P protocol between Web users. This is done in an 
 adaptive and transparent way in order to reduce server bandwidth costs while ensuring low latency for users.
 
-The method used is a simplified and Web-transposed version of the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client.
+It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but highly simplified and transposed to the Web!
 
 **[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)**
 
