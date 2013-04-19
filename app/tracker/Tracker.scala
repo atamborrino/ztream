@@ -15,7 +15,7 @@ object Tracker {
   class Tracker extends Actor {
     import context._
 
-    // map a track name to peers that have streamed it and are still online
+    // map a track name to peers that have entirely streamed it and are still online
     var trackingTable = Map.empty[String, Seq[ActorRef]]
 
     // map a "on-going seek event" to the Timeout of this seek event
@@ -46,6 +46,7 @@ object Tracker {
           case None =>
             seeker ! peerNotFound
           case Some(peerList) => 
+            val peersToAsk = peerList.take(20)
             if (peerList.length > 0) {
               val seekId = UUID.randomUUID().toString
               val req = Json.obj(
@@ -54,12 +55,12 @@ object Tracker {
                   "trackName" -> trackName,
                   "seekerId" -> seekerId,
                   "seekId" -> seekId))
-              peerList foreach { peer =>
+              peersToAsk foreach { peer =>
                 peer ! req
               }
               val system = context.system
               import system.dispatcher
-              val cancellable = system.scheduler.scheduleOnce(5 seconds) {
+              val cancellable = system.scheduler.scheduleOnce(4 seconds) {
                 self ! TimeOutSeekPeer(seekId, seeker)
               }
               seekIds = seekIds + (seekId -> cancellable)

@@ -39,12 +39,11 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
     $("#totalNumberPeers").text("-");
   }
 
-  // Known peers that are wanting or wanted a specific track from you (leechers)
   // Map of peerId -> peerConnection
   var peers = {};
   var MAX_LEECHERS_PER_SEEDER = 2;
 
-  // Seeder and wanted track information (the client is designed for only one track for now)
+  // Potential seeder and wanted track information (the client is designed for only one track for now)
   var seederConn = null; // peer connection
   var seedChan = null; // data channel
   var trackName = $("#trackName").text();
@@ -222,7 +221,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   if (compatible) {
     var ctrlSocket = new WebSocket(u.wsUrl("control")); 
     var streamSocket = new WebSocket(u.wsUrl("stream"));
-    streamSocket.binaryType = 'arraybuffer';
+    streamSocket.binaryType = "arraybuffer";
 
     // control WS events
     ctrlSocket.onopen = function() {
