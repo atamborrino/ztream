@@ -11,7 +11,7 @@ class Tracker extends Actor {
   import context._
 
   // map a track name to peers that have entirely streamed it and are still online
-  var trackingTable = Map.empty[String, Seq[ActorRef]]
+  var trackingTable = Map.empty[String, IndexedSeq[ActorRef]]
 
   // map a "on-going seek event" to the Timeout of this seek event
   var seekIds = Map.empty[String, Cancellable]
@@ -27,10 +27,12 @@ class Tracker extends Actor {
 
     case StreamEnded(trackName, peer) =>
       val newTrackingTable = trackingTable.get(trackName) map { peerList =>
-        val newPeerList = peer +: peerList
+        val newPeerList = 
+          if (peerList.length < 200) peer +: peerList
+          else peer +: peerList.dropRight(1)
         trackingTable + (trackName -> newPeerList)
       } getOrElse {
-        trackingTable + (trackName -> Seq(peer))
+        trackingTable + (trackName -> IndexedSeq(peer))
       }
       trackingTable = newTrackingTable
 
@@ -41,7 +43,7 @@ class Tracker extends Actor {
         case None =>
           seeker ! peerNotFound
         case Some(peerList) => 
-          val peersToAsk = peerList.take(20)
+          val peersToAsk = peerList.take(20) // last 20 streamers still online
           if (peerList.length > 0) {
             val seekId = UUID.randomUUID().toString
             val req = Json.obj(
@@ -110,7 +112,7 @@ class Tracker extends Actor {
 class Peer(channel: Channel[JsValue]) extends Actor {
   import context._
 
-  val heartbeatCheckInterval = 16 seconds
+  val heartbeatCheckInterval = 37 seconds
   var alive = true
 
   override def preStart() = {
@@ -126,7 +128,7 @@ class Peer(channel: Channel[JsValue]) extends Actor {
 
     case CheckHeartbeat =>
       if (!alive) {
-        channel.eofAndEnd
+        channel.eofAndEnd()
         stop(self)
       } else {
         alive = false

@@ -12,12 +12,12 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import akka.actor.Props
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.actor._
+
 import tracker._
-import stream.ServerStream
+import stream._
 
 object Application extends Controller {
   import play.api.libs.concurrent.Execution.Implicits._
@@ -45,7 +45,7 @@ object Application extends Controller {
     val charset = Charset.forName("UTF-16LE")
     val promiseIn = promise[Iteratee[Array[Byte], Unit]]
 
-    val out = Concurrent.patchPanel[Array[Byte]] { patcher =>
+    val out = Concurrent.patchPanel[Array[Byte]] { streamer =>
 
       val in = Iteratee.foreach[Array[Byte]] { bytes =>
         val maybeStream = for {
@@ -56,7 +56,7 @@ object Application extends Controller {
         } yield { 
           ServerStream.stream(trackName, fromChunk, toChunk)
         }
-        maybeStream foreach (patcher.patchIn(_))
+        maybeStream foreach { streamer.patchIn(_) }
       }
 
       promiseIn.success(in)
@@ -68,7 +68,7 @@ object Application extends Controller {
   // CONTROL
   def control = WebSocket.using[JsValue] { request =>
     // new client
-    implicit val timeout = Timeout(10 seconds)
+    implicit val timeout = Timeout(5 seconds)
     val myId = UUID.randomUUID().toString
     val (out, channel) = Concurrent.broadcast[JsValue]
 

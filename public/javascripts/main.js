@@ -58,9 +58,9 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   // streaming from server
   var CHUNK_WINDOW = 700; // number of chunks we ask to server each time we need to
   var chunkNInsideWindow = -1; // higher chunk number received inside the current chunk window streamed from server
-  var HEARTBEAT_INTERVAL = 9000;
+  var HEARTBEAT_INTERVAL = 30000; // ms
 
-  var MIN_BUFFER_TIME = 3; // min ahead time (seconds) authorized for the buffer. If less, we go in emergency mode.
+  var MIN_BUFFER_TIME = 4; // min ahead time (seconds) authorized for the buffer. If less, we go in emergency mode.
 
   // internal state
   var emergencyMode = false; // true if we need to stream from server right now (buffer is too low)
@@ -159,7 +159,8 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
         for(var i = 0; (chunkI < track.length && i < 100); i++) {
           var chunkNum = new Uint32Array(1);
           chunkNum[0] = chunkI;
-          var chunk = u.UInt32concat(chunkNum, new Uint32Array(track[chunkI])).buffer;
+          var chunkNumInt8 = new Uint8Array(chunkNum.buffer);
+          var chunk = u.UInt8concat(chunkNumInt8, new Uint8Array(track[chunkI])).buffer;
           var b64encoded = base64.encode(chunk);
           chan.send(b64encoded);
           chunkI++;
@@ -230,10 +231,9 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       }, HEARTBEAT_INTERVAL);
     };
     ctrlSocket.onmessage = function(evt) {
-      var parsedWsEvt = JSON.parse(evt.data);
-      var event = parsedWsEvt.event;
-      var data = parsedWsEvt.data;
-      //u.trace("Rcv: "+evt.data);
+      var jsonEvt = JSON.parse(evt.data);
+      var event = jsonEvt.event;
+      var data = jsonEvt.data;
 
       if (event === "reqPeer") {
         var trackWanted = data.trackName;
@@ -247,6 +247,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
       else if (event === "peerNotFound") {
         peerRequested = false;
+        u.trace("peer not found");
       }
 
       else if (event === "info") {
@@ -254,47 +255,42 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       }
 
       // WebRTC caller side (leecher)
-      else if (event === "peerFound" && seederConn === null) {
-        // seeder found
+      else if (event === "peerFound") {
         peerRequested = false;
-        var seederId = data.seederId;
+        if (seederConn === null) {
+          var seederId = data.seederId;
+          seederConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
+          u.trace("establishing P2P connection caller side (leecher)");
 
-        seederConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
-        u.trace("establishing P2P connection caller side (leecher)");
-
-        seederConn.onicecandidate = function(iceEvt) {
+          seederConn.onicecandidate = function(iceEvt) {
             if (iceEvt.candidate) {
-              ctrlSocket.send(u.fwdMess(seederId,"callerIceCandidate",
-                {"trackName":trackName,"candidate": iceEvt.candidate }));
+              ctrlSocket.send(u.fwdMess(seederId,"callerIceCandidate", {"candidate": iceEvt.candidate }));
             }
-        };
-        seederConn.onnegotiationneeded = function() {
-          seederConn.createOffer(function(desc){
+          };
+          seederConn.onnegotiationneeded = function() {
+            seederConn.createOffer(function(desc){
               seederConn.setLocalDescription(desc, function() {
-                ctrlSocket.send(u.fwdMess(seederId,"rtcOffer",
-                  {"trackName":trackName,"sdp": desc }));
+                ctrlSocket.send(u.fwdMess(seederId,"rtcOffer", {"sdp": desc }));
               });
-          });
-        };
+            });
+          };
 
-        P2PstreamRequest(seederConn);
+          P2PstreamRequest(seederConn);
+        }
       }
 
       // WebRTC callee side (seeder)
       else if (event === "rtcOffer" || event === "callerIceCandidate") {
-        var leecherId = parsedWsEvt.from;
+        var leecherId = jsonEvt.from;
 
         if (!peers.hasOwnProperty(leecherId)) {
           //creation of new P2P connection
           var leecherConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},
             { optional:[ { RtpDataChannels: true } ]});
 
-          leecherConn.onicecandidate = function (iceEvt) {
+          leecherConn.onicecandidate = function(iceEvt) {
             if (iceEvt.candidate) {
-              ctrlSocket.send(u.fwdMess(leecherId,"calleeIceCandidate",
-                {"trackName":trackName,"candidate": iceEvt.candidate }));
-            } else {
-              u.trace("No more Ice candidate");
+              ctrlSocket.send(u.fwdMess(leecherId,"calleeIceCandidate", {"candidate": iceEvt.candidate }));
             }
           };
 
@@ -308,8 +304,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
             u.trace("rtc offer set"); 
             leecherConn.createAnswer(function(desc){
               leecherConn.setLocalDescription(desc, function() {
-                ctrlSocket.send(u.fwdMess(leecherId,"rtcAnswer",
-                  {"trackName":trackName,"sdp": desc }));
+                ctrlSocket.send(u.fwdMess(leecherId,"rtcAnswer", {"sdp": desc }));
               });
             });
           });

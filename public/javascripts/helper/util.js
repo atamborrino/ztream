@@ -56,9 +56,9 @@ define(["vendor/jquery"], function($) {
       return String.fromCharCode.apply(null, new Uint16Array(ab));
     },
 
-    UInt32concat: function(first, second) {
+    UInt8concat: function(first, second) {
         var firstLength = first.length;
-        var result = new Uint32Array(firstLength + second.length);
+        var result = new Uint8Array(firstLength + second.length);
         result.set(first);
         result.set(second, firstLength);
         return result;
