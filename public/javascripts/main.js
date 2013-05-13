@@ -44,16 +44,15 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
   var MAX_LEECHERS_PER_SEEDER = 2;
 
   // Potential seeder and wanted track information (the client is designed for only one track for now)
-  var seederConn = null; // peer connection
-  var seedChan = null; // data channel
+  var seederConn, seedChan; // peer connection and data channel
   var trackName = $("#trackName").text();
   var totalNChunk = parseInt($("#totalNbChunk").text(),10); // total number of chunks of the track
   var track = []; // array of chunks (in-memory cache)
 
   // Audio
-  var audio = null; // html audio tag
-  var mediaSource = null;
-  var sourceBuffer = null;
+  $("#player").prepend('<video id="track"></video>'); // use of video tag as an audio tag
+  var audio = $("#track").hide().get(0);
+  var mediaSource, sourceBuffer;
 
   // streaming from server
   var CHUNK_WINDOW = 700; // number of chunks we ask to server each time we need to
@@ -120,7 +119,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
 
     seedChan.onclose = function() {
       // Peer have closed the connection before the seeker have downloaded the full track
-      if (seederConn !== null) { // == if we have not suspected the seeder before (onclose can be much delayed)
+      if (seederConn) { // == if we have not suspected the seeder before (onclose can be much delayed)
         u.trace("data channel closed");
         seedChan = null;
         try {
@@ -145,7 +144,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
     chan.onmessage = function (evt) {
       u.trace("Rcving P2P stream request");
       var req = JSON.parse(evt.data);
-      if (cancellable !== null) {
+      if (cancellable) {
         // cancelling previous sending
         clearInterval(cancellable);
       } else {
@@ -257,7 +256,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       // WebRTC caller side (leecher)
       else if (event === "peerFound") {
         peerRequested = false;
-        if (seederConn === null) {
+        if (!seederConn) {
           var seederId = data.seederId;
           seederConn = new RTCPeerConnection({"iceServers": [{"url": SERVER}]},{ optional:[ { RtpDataChannels: true }]});
           u.trace("establishing P2P connection caller side (leecher)");
@@ -315,12 +314,12 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
       }
 
       // WebRTC caller side (leecher)
-      else if (event === "rtcAnswer" && seederConn !== null) {
+      else if (event === "rtcAnswer" && seederConn) {
         seederConn.setRemoteDescription(new RTCSessionDescription(data.sdp));
       }
 
       // WebRTC caller side (leecher)
-      else if (event === "calleeIceCandidate" && seederConn !== null) {
+      else if (event === "calleeIceCandidate" && seederConn) {
         seederConn.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
 
@@ -349,7 +348,7 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
         chunkNInsideWindow = -1;
         emergencyMode = false;
         // recontact seeder to ask for chunks
-        if (seedChan !== null && seedChan.readyState === "open") {
+        if (seedChan && seedChan.readyState === "open") {
           if (seederIsSuspected) {
             u.trace("seeder is inactive");
             seedChan.close();
@@ -378,15 +377,11 @@ require(["helper/util","vendor/base64", "vendor/jquery"], function(u, base64, $)
     if (!compatible) {
       $(".warning").fadeTo(250,0.01).fadeTo(250,1);
     } else {
-      if (audio === null || audio.currentTime === 0 || audio.ended) {
+      if (audio.currentTime === 0 || audio.ended) {
         // new playback of the track
-        $("#track").remove();
-        $("#player").prepend('<video id="track"></video>'); // use of video tag as an audio tag
-        $("#track").hide();
-
-        audio = $('#track').get(0);
         mediaSource = new MediaSource();
         audio.src = window.URL.createObjectURL(mediaSource);
+        audio.load();
 
         audio.addEventListener("canplay", function() {
           $("#totalTime").text(u.formatTime(audio.duration));
