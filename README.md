@@ -22,14 +22,14 @@ Here is what a peer does when his user chooses a track to listen to:
 5. A WebRTC PeerConnection is made between the leecher and the seeder, and the leecher can start streaming chunks of the track from the seeder via a binary DataChannel.
 6. At any time, if there is only around 4 seconds left in the playback buffer, the leecher stops streaming from the seeder (if there is any) and asks the server the next chunks of the track. This is a kind of emergency mode that occurs when no seeder is found or when the seeder is streaming too slowly. After receiving these new chunks, the leecher starts again streaming from the seeder or keep on searching for one.
 
-Moreover, on the server-side, upon a stream request of an user (random access from chunk x to chunk y of a track), the server streams the requested series of chunks directly from MongoDB and redirects this stream towards the client's Websocket (so there is never an accumulation of chunks in the server memory). ReactiveMongo and its use of Play's Iteratee allows you to build such a reactive stream out-of-the-box with a few lines of code.
+Moreover, on the server-side, upon a stream request of an user (random access from chunk x to chunk y of a track), the server streams the requested series of chunks directly from MongoDB and redirects this stream towards the client's Websocket, so that there is never an accumulation of chunks in the server memory (back-pressure is preserved). ReactiveMongo and its use of Play's Iteratee/Enumerator allows to get a stream from Mongo and to compose/transform it with a few lines of code.
 
 Check the code for more details!
 
 Note on audio format: Media Source currently only supports webm files (put in a html video element even for audio). You can easily convert your music to webm via ffmpeg:
 ```ffmpeg -i music.ogg -strict -2 music.webm```
 
-## TODOs / Ideas
+## Ideas
 
 * For now, streamed tracks are cached in-memory on the client side (not a problem as the client can only stream one track in the demo). But for a multi-tracks Web client, the tracks should be cached in the FileSystem API instead of in-memory in order to have a persistent cache and more space.
 
@@ -37,19 +37,5 @@ Note on audio format: Media Source currently only supports webm files (put in a 
 
 * Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce streaming server bandwidth costs by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
 
-* Need to moduralize better client side code...
 
 Feel free to fork and experiment =)
-
-## Author
-
-Alexandre Tamborrino
-
-* [@altamborrino](https://twitter.com/altamborrino)
-* tamborrino.alexandre@gmail.com
-
-
-
-
-
-

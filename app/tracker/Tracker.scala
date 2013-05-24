@@ -112,11 +112,11 @@ class Tracker extends Actor {
 class Peer(channel: Channel[JsValue]) extends Actor {
   import context._
 
-  val heartbeatCheckInterval = 37 seconds
+  val HeartbeatCheckInterval = 37 seconds
   var alive = true
 
   override def preStart() = {
-    system.scheduler.schedule(1 second, heartbeatCheckInterval, self, CheckHeartbeat)
+    system.scheduler.schedule(1 second, HeartbeatCheckInterval, self, CheckHeartbeat)
   }
 
   def receive = {
