@@ -4,9 +4,11 @@ Ztream is a proof of concept for **P2P-assisted Web music streaming** built with
 Streaming is performed by a combination of client-server access and P2P protocol between Web users. This is done in an 
 adaptive and transparent way in order to reduce server bandwidth costs while ensuring low latency and smooth playback for users.
 
-It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but highly simplified and transposed to the Web!
+It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but *highly* simplified and transposed to the Web!
 
-**[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)**
+**STATUS**: waiting for the release of reliable data channel in Chrome.
+
+<!-- **[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)** -->
 
 ## How it works
 
@@ -22,7 +24,7 @@ Here is what a peer does when his user chooses a track to listen to:
 5. A WebRTC PeerConnection is made between the leecher and the seeder, and the leecher can start streaming chunks of the track from the seeder via a binary DataChannel.
 6. At any time, if there is only around 4 seconds left in the playback buffer, the leecher stops streaming from the seeder (if there is any) and asks the server the next chunks of the track. This is a kind of emergency mode that occurs when no seeder is found or when the seeder is streaming too slowly. After receiving these new chunks, the leecher starts again streaming from the seeder or keep on searching for one.
 
-Moreover, on the server-side, upon a stream request of an user (random access from chunk x to chunk y of a track), the server streams the requested series of chunks directly from MongoDB and redirects this stream towards the client's Websocket, so that there is never an accumulation of chunks in the server memory (back-pressure is preserved). ReactiveMongo and its use of Play's Iteratee/Enumerator allows to get a stream from Mongo and to compose/transform it with a few lines of code.
+Moreover, on the server-side, upon a stream request of an user (random access from chunk x to chunk y of a track), the server streams the requested series of chunks directly from MongoDB GridFS and redirects this stream towards the client's Websocket, so that there is never an accumulation of chunks in the server memory (back-pressure is preserved). ReactiveMongo and its use of Play's Iteratee/Enumerator allows to get a stream from Mongo and to compose/transform it with a few lines of code.
 
 Check the code for more details!
 

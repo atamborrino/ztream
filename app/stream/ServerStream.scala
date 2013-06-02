@@ -46,10 +46,10 @@ object ServerStream {
 
     val cursor = chunks.find(selector)
     cursor.enumerate &> (Enumeratee.map { doc =>
-      doc.get("data").flatMap {
+      doc.get("data") flatMap {
         case BSONBinary(data, _) => Some(data.array())
         case _ => None
-      }.getOrElse {
+      } getOrElse {
         throw new RuntimeException("not a chunk! failed assertion: data field is missing")
       }
     })

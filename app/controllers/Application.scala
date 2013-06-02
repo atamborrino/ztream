@@ -49,8 +49,8 @@ object Application extends Controller {
     val in = (tracker ? NewPeer(myId, channel)).mapTo[ActorRef] map { mySelf =>
       Iteratee.foreach[JsValue] { js =>
         val data = (js \ "data")
+
         (js \ "event") match {
-          
           case (JsString("streamEnded")) =>
             (data \ "trackName").asOpt[String] foreach { tracker ! StreamEnded(_, mySelf) }
 

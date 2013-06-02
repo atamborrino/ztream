@@ -12,13 +12,6 @@ define(["vendor/jquery"], function($) {
       return m+":"+s;
     },
 
-    // preload images
-    preload: function(arrayOfImages) {
-      $(arrayOfImages).each(function(){
-        $('<img/>')[0].src = this;
-      });
-    },
-
     trace: function(text) {
       performance.now = performance.now || performance.webkitNow;
       var log = (performance.now() / 1000).toFixed(1) + ": " + text;

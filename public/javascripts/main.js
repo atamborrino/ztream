@@ -49,14 +49,14 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   var track = []; // array of chunks (in-memory cache)
 
   // Audio
-  var audio = document.createElement('video');
+  var audio = document.createElement('video'); // <audio> does not support Media Source API yet
   var mediaSource, sourceBuffer;
 
   // streaming from server
   var CHUNK_WINDOW = 700; // number of chunks we ask to server each time we need to
   var chunkNbInsideWindow = -1; // higher chunk number received inside the current chunk window streamed from server
-  var HEARTBEAT_INTERVAL = 30000; // ms
 
+  var HEARTBEAT_INTERVAL = 30000; // ms
   var MIN_BUFFER_TIME = 4; // min ahead time (seconds) authorized for the buffer. If less, we go in emergency mode.
 
   // internal state
@@ -370,8 +370,6 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   }
 
 
-  u.preload(['assets/images/pause.png']);
-
   $('#playButton').click(function() {
     if (!compatible) {
       $('.warning').fadeTo(250,0.01).fadeTo(250,1);
@@ -384,7 +382,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
 
         audio.addEventListener('canplay', function() {
           $('#totalTime').text(u.formatTime(audio.duration));
-        },false);
+        }, false);
 
         audio.addEventListener('timeupdate', function() {
           // setting emergency streaming from server if there is less
@@ -393,11 +391,11 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
             streamFromServer(track.length,track.length+CHUNK_WINDOW);
           }
           $('#currentTime').text(u.formatTime(audio.currentTime));
-        },false);
+        }, false);
 
         audio.addEventListener('ended', function(){
           $('#playButton').attr('src','assets/images/play.png');
-          if (!($('#fromCache').length)) {
+          if ($('#fromCache').length === 0) {
             $('#playButton').after('<span id="fromCache">from cache</span>');
           }
         }, false);
@@ -420,7 +418,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
           if (track.length < totalNbChunk) {
             seekPeer();
           }
-        },false);
+        }, false);
 
         audio.play();
         $('#playButton').attr('src','assets/images/pause.png');
