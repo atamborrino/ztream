@@ -1,6 +1,6 @@
 # Ztream
 
-Ztream is a proof of concept for **P2P-assisted Web music streaming** built with [WebRTC](http://www.webrtc.org/), [Media Source API]("https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html"), [Play Framework]("http://www.playframework.com/") (Scala) and [ReactiveMongo]("http://reactivemongo.org/").  
+Ztream is a proof of concept for **P2P-assisted Web music streaming** built with [WebRTC](http://www.webrtc.org/), [Media Source API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html), [Play Framework](http://www.playframework.com/) (Scala) and [ReactiveMongo](http://reactivemongo.org/).  
 Streaming is performed by a combination of client-server access and P2P protocol between Web users. This is done in an 
 adaptive and transparent way in order to reduce server bandwidth costs while ensuring low latency and smooth playback for users.
 
