@@ -39,6 +39,30 @@ object Application extends Controller {
     }
   }
 
+  // STREAM
+  def stream = WebSocket.using[Array[Byte]] { request =>
+    // we deal with a binary websocket here (Array[Byte])
+    val charset = Charset.forName("UTF-16LE")
+    val promiseIn = promise[Iteratee[Array[Byte], Unit]]
+
+    val out = Concurrent.patchPanel[Array[Byte]] { streamer =>
+      val in = Iteratee.foreach[Array[Byte]] { bytes =>
+        val maybeStream = for {
+          json <- Try(Json.parse(new String(bytes, charset))).toOption
+          trackName <- (json \ "trackName").asOpt[String]
+          fromChunk <- (json \ "from").asOpt[Int]
+          toChunk <- (json \ "to").asOpt[Int]
+        } yield { 
+          ServerStream.stream(trackName, fromChunk, toChunk)
+        }
+        maybeStream foreach { streamer.patchIn(_) }
+      }
+      promiseIn.success(in)
+    }
+
+    (Iteratee.flatten(promiseIn.future), out)
+  }
+
   // CONTROL
   def control = WebSocket.using[JsValue] { request =>
     // new client
@@ -49,7 +73,6 @@ object Application extends Controller {
     val in = (tracker ? NewPeer(myId, channel)).mapTo[ActorRef] map { mySelf =>
       Iteratee.foreach[JsValue] { js =>
         val data = (js \ "data")
-
         (js \ "event") match {
           case (JsString("streamEnded")) =>
             (data \ "trackName").asOpt[String] foreach { tracker ! StreamEnded(_, mySelf) }
@@ -82,33 +105,5 @@ object Application extends Controller {
 
     (Iteratee.flatten(in), out)
   }
-
-  // STREAM
-  def stream = WebSocket.using[Array[Byte]] { request =>
-    // we deal with a binary websocket here (Array[Byte])
-    val charset = Charset.forName("UTF-16LE")
-    val promiseIn = promise[Iteratee[Array[Byte], Unit]]
-
-    val out = Concurrent.patchPanel[Array[Byte]] { streamer =>
-
-      val in = Iteratee.foreach[Array[Byte]] { bytes =>
-        val maybeStream = for {
-          json <- Try(Json.parse(new String(bytes, charset))).toOption
-          trackName <- (json \ "trackName").asOpt[String]
-          fromChunk <- (json \ "from").asOpt[Int]
-          toChunk <- (json \ "to").asOpt[Int]
-        } yield { 
-          ServerStream.stream(trackName, fromChunk, toChunk)
-        }
-        maybeStream foreach { streamer.patchIn(_) }
-      }
-
-      promiseIn.success(in)
-    }
-
-    (Iteratee.flatten(promiseIn.future), out)
-  }
-
-
 
 }

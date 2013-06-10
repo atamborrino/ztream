@@ -1,7 +1,6 @@
 import play.api._
 import reactivemongo.api._
 import reactivemongo.bson._
-import reactivemongo.bson.handlers.DefaultBSONHandlers._
 import play.modules.reactivemongo._
 import play.api.Play.current
 import play.api.libs.iteratee.Enumerator

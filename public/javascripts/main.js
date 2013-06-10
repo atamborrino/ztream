@@ -23,7 +23,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   try {
     if (RTCPeerConnection && MediaSource) {
       pc = new RTCPeerConnection({'iceServers': [{'url': SERVER}]},{ optional:[ { RtpDataChannels: true }]});
-      var dc = pc.createDataChannel('test', {reliable: false});
+      var dc = pc.createDataChannel('test', {reliable: true});
       if (dc) {
         compatible = true;
       } 
@@ -72,7 +72,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
 
   // leecher side
   function P2PstreamRequest(seederConn) {
-    seedChan = seederConn.createDataChannel(trackName, { reliable : false });
+    seedChan = seederConn.createDataChannel(trackName, {reliable : true});
     seedChan.binaryType = 'arraybuffer';
 
     $('#connectedToSeeder').text(true);
