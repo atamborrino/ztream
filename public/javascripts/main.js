@@ -187,7 +187,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
       chunkNbInsideWindow = 0;
       emergencyMode = true;
       var req = {'trackName':trackName,'from':fromChunkN,'to':toChunkN};
-      u.trace(JSON.stringify(req));
+      u.trace("Request to server: " + JSON.stringify(req));
       streamSocket.send(u.str2ab(JSON.stringify(req)));
     }
   }
@@ -298,7 +298,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
         var leecherConn = peers[leecherId];
         if (event === 'rtcOffer') {
           leecherConn.setRemoteDescription(new RTCSessionDescription(data.sdp), function() {
-            u.trace('rtc offer set'); 
+            // u.trace('rtc offer set'); 
             leecherConn.createAnswer(function(desc){
               desc.sdp = u.transformSdp(desc.sdp);
               leecherConn.setLocalDescription(desc, function() {

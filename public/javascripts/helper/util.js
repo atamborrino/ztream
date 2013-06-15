@@ -27,12 +27,12 @@ define(["vendor/jquery"], function($) {
     },
 
     mess: function(event,data) {
-      this.trace("Send: "+JSON.stringify({"event:":event,"data":data}));
+      // this.trace("Send: "+JSON.stringify({"event:":event,"data":data}));
       return JSON.stringify({"event":event,"data":data});
     },
 
     fwdMess: function(to,event,data) {
-      //this.trace("Send to peer"+to+": "+JSON.stringify({"event:":event,"data":data}));
+      // this.trace("Send to peer"+to+": "+JSON.stringify({"event:":event,"data":data}));
       return JSON.stringify({"event":"forward","to":to,"data":{"event":event,"data":data}});
     },
 
