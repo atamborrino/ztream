@@ -74,9 +74,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   function P2PstreamRequest(seederConn) {
     seedChan = seederConn.createDataChannel(trackName, {reliable : true});
     seedChan.binaryType = 'arraybuffer';
-
-    $('#connectedToSeeder').text(true);
-    u.trace('Going to open DataChannel');
+    // u.trace('Going to open DataChannel');
 
     seedChan.onopen = function() {
       u.trace('DataChannel opened');
@@ -91,7 +89,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
       if (!emergencyMode) {
         var binaryData = base64.decode(evt.data);
         var chunkNum = new Uint32Array(binaryData.slice(0,4))[0];
-        u.trace('P2P: rcv: chunk '+chunkNum);
+        // u.trace('P2P: rcv: chunk '+chunkNum);
         if (chunkNum === track.length) {
           var chunk = binaryData.slice(4);
           track.push(chunk);
@@ -106,10 +104,10 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
             $('#totalTime').text(u.formatTime(audio.duration)); // hack, should not be needed
           }
         } else {
-          u.trace('rcv chunk from P2P but wrong number');
+          // u.trace('rcv chunk from P2P but wrong number');
         }
       } else {
-        u.trace('rcv chunk from P2P but emergency mode');
+        // u.trace('rcv chunk from P2P but emergency mode');
         // ignoring chunk (it arrived too late!)
         // TODO: implement 'stop' message ?
       }
@@ -129,6 +127,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
       }
     }
 
+    $('#connectedToSeeder').text(true);
   }
 
   // seeder side
@@ -140,7 +139,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
     var cancellable;
 
     chan.onmessage = function (evt) {
-      u.trace('Rcving P2P stream request');
+      u.trace('Receiving P2P stream request');
       var req = JSON.parse(evt.data);
       if (cancellable) {
         // cancelling previous sending
@@ -152,8 +151,8 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
       $('#nbLeechers').text(nbCurrentLeechers);
 
       function sendProgressively() {
-        // goal rate: 50 kb/s
-        for(var i = 0; (chunkI < track.length && i < 100); i++) {
+        // goal rate: 75 kb/s
+        for(var i = 0; chunkI < track.length && i < 150; i++) {
           var chunkNum = new Uint32Array(1);
           chunkNum[0] = chunkI;
           var chunkNumInt8 = new Uint8Array(chunkNum.buffer);
@@ -161,7 +160,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
           var b64encoded = base64.encode(chunk);
           chan.send(b64encoded);
           chunkI++;
-          u.trace('P2P: send chunk '+chunkI);
+          // u.trace('P2P: send chunk '+chunkI);
         }
         if (chunkI >= track.length) {
           clearInterval(cancellable);
@@ -205,7 +204,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   function seekPeer() {
     if (!peerRequested){
       ctrlSocket.send(u.mess('seekPeer',{'trackName':trackName}));
-      u.trace('SEEK NEW PEER');
+      // u.trace('SEEK NEW PEER');
       peerRequested = true;
     }
   }
@@ -268,7 +267,8 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
           seederConn.onnegotiationneeded = function() {
             seederConn.createOffer(function(desc){
               seederConn.setLocalDescription(desc, function() {
-                ctrlSocket.send(u.fwdMess(seederId,'rtcOffer', {'sdp': desc }));
+                desc.sdp = u.transformSdp(desc.sdp);
+                ctrlSocket.send(u.fwdMess(seederId,'rtcOffer', {'sdp': desc}));
               });
             });
           };
@@ -300,6 +300,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
           leecherConn.setRemoteDescription(new RTCSessionDescription(data.sdp), function() {
             u.trace('rtc offer set'); 
             leecherConn.createAnswer(function(desc){
+              desc.sdp = u.transformSdp(desc.sdp);
               leecherConn.setLocalDescription(desc, function() {
                 ctrlSocket.send(u.fwdMess(leecherId,'rtcAnswer', {'sdp': desc }));
               });
@@ -370,6 +371,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   }
 
 
+  // user event
   $('#playButton').click(function() {
     if (!compatible) {
       $('.warning').fadeTo(250,0.01).fadeTo(250,1);

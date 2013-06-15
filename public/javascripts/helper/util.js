@@ -50,11 +50,18 @@ define(["vendor/jquery"], function($) {
     },
 
     UInt8concat: function(first, second) {
-        var firstLength = first.length;
-        var result = new Uint8Array(firstLength + second.length);
-        result.set(first);
-        result.set(second, firstLength);
-        return result;
+      var firstLength = first.length;
+      var result = new Uint8Array(firstLength + second.length);
+      result.set(first);
+      result.set(second, firstLength);
+      return result;
+    },
+
+    // hack to increase the upload rate limit
+    transformSdp: function(sdp) {
+      var splitted = sdp.split("b=AS:30");
+      var newSDP = splitted[0] + "b=AS:1638400" + splitted[1];
+      return newSDP;
     }
 
   }
