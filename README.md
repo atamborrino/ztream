@@ -6,9 +6,7 @@ adaptive and transparent way in order to reduce server bandwidth costs while ens
 
 It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but *highly* simplified and transposed to the Web!
 
-**STATUS**: waiting for the release of reliable data channel in Chrome.
-
-<!-- **[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)** -->
+**[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)**
 
 ## How it works
 
