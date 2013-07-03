@@ -1,18 +1,111 @@
-@(title: String)(content: Html)
-
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
+        <title>Ztream</title>
+        <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.min.css"))">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-        <link href="@routes.Assets.at("stylesheets/bootstrap-responsive.min.css")" rel="stylesheet">
+        <link href="@routes.Assets.at("stylesheets/bootstrap-responsive.min-MODIFIED.css")" rel="stylesheet">
+
+        <script src="@routes.WebJarAssets.at(WebJarAssets.locate("angular.min.js"))"></script>
+        <script src="@routes.Assets.at("javascripts/app.js")"></script>
+        <script src="@routes.Assets.at("javascripts/services.js")"></script>
+        <script src="@routes.Assets.at("javascripts/controllers.js")"></script>
+        <script src="@routes.Assets.at("javascripts/filters.js")"></script>
+        <script src="@routes.Assets.at("javascripts/vendor/base64.js")"></script>
     </head>
-    <body>
-        @content
-        @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
+    <body ng-app="ztream">
+      <header class="header">
+        <div class="container">
+         <div class="row">
+          <div class="span6 offset1">
+            <h1 class="main-title">=>Ztream</h1>
+          </div>
+          <div class="span4">
+            <a href="https://twitter.com/share" class="twitter-share-button pull-right" data-text="P2P-assisted Web music streaming built with #WebRTC and #PlayFramework #Scala" data-size="large">Tweet</a>
+          </div>
+        </div>
+        </div>
+      </header>
+      <div ng-controller="DemoCtrl">
+        <div class="container">
+          <div class="row">
+            <div class="span10 offset1">
+              <div class="description">
+                <p>Ztream is a proof of concept for <strong>P2P-assisted Web music streaming</strong> built with <a href="http://www.webrtc.org/">WebRTC</a>, <a href="https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html">Media Source API</a>, <a href="http://angularjs.org/">AngularJS</a>, <a href="http://www.playframework.com/">Play Framework</a> (Scala) and <a href="http://reactivemongo.org/">ReactiveMongo</a>.</p>
+                <p>Streaming is performed by a combination of client-server access and P2P protocol between Web users. This is done in an 
+                <strong>adaptive and transparent</strong> way in order to <strong>reduce server bandwidth costs</strong> while ensuring <strong>low latency and smooth playback </strong>for users.</p>
+                <p>It is inspired from the <a href="http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf">architecture</a> of the Spotify's desktop client, but <em>highly</em> simplified and transposed to the Web!</p>
+                <p ng-hide="P2Pplayer.compatible">Warning: your browser is 
+                  <span class="warning {{highlight}}">not compatible</span> with Ztream. 
+                  Please use the latest version of <a href="https://www.google.com/intl/en/chrome/browser/canary.html">Chrome Canary</a> / Chromium and set "Enable SCTP Data Channels" to true in chrome://flags (sadly Firefox does not support Media Source yet).</p>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="span10 offset1">
+              <hr>
+              <div id="player">
+                <h2>Now you can stream your music in a Web P2P way</h2>
+                <div class="row">  
+                  <div class="span3">
+                    <p>
+                      <img 
+                        ng-click="playPause()"
+                        ng-src="{{ (audio.paused || audio.ended) && '@routes.Assets.at("images/play.png")' 
+                                || '@routes.Assets.at("images/pause.png")' }}" 
+                        height="128" width="128" id="playButton" alt="Play"/>
+                      <span ng-show="P2Pplayer.track.length === P2Pplayer.totalNbChunks">from cache</span>
+                      </p> 
+                    <div class="time">
+                      <p>{{audio.currentTime | formatTime}} / {{audio.duration | NaNTo0 | formatTime}}</p>
+                    </div>
+                  </div>
+                  <div class="span7">
+                    <table class="table data">
+                      <tr>
+                        <td>Chunks downloaded</td><td>{{P2Pplayer.track.length}} / {{P2Pplayer.totalNbChunks}}</td>
+                      </tr>
+                      <tr>
+                        <td>Streamed from server</td><td>{{[P2Pplayer.nbChunksFromServer, P2Pplayer.totalNbChunks] | percentage:true}}</td>
+                      </tr>
+                      <tr>
+                        <td>Streamed from peers</td><td>{{[P2Pplayer.nbChunksFromPeers, P2Pplayer.totalNbChunks] | percentage:false}}</td>
+                      </tr>
+                      <tr>
+                        <td>Peer(s) streaming from you</td><td>{{P2Pplayer.nbCurrentLeechers}}</td>
+                      </tr>
+                      <tr>
+                        <td>Total number of peers in the network</td>
+                        <td>
+                          {{P2Pplayer.compatible && P2Pplayer.totalNbPeers || '-'}}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Track name</td><td>{{P2Pplayer.trackName}}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>  
+          </div>
+          <div class="row">
+            <div class="span10 offset1">
+              <div class="indication">
+                <p> <strong>NB:</strong> If no seeder is found (i.e "Seeder found" remains false while you are streaming), you can
+                simulate peers by opening Ztream in other tabs. Remember: like in Spotify, a peer can only stream from a peer that has already cached the whole track (i.e a seeder).</p>
+                <span id="forkongithub"><a href="https://github.com/atamborrino/ztream">Fork me on GitHub</a></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tweet script -->
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+      <!-- Prefetch pause button -->
+      <link rel="prefetch" href="@routes.Assets.at("images/pause.png")" />
     </body>
 </html>

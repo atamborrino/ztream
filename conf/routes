@@ -3,9 +3,11 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
-GET		/stream						controllers.Application.stream
-GET 	/control					controllers.Application.control
+GET   /                             controllers.Application.index
+GET   /stream                       controllers.Application.stream
+GET   /control                      controllers.Application.control
+GET   /trackmetainfo/:trackname     controllers.Application.getTrackMetaInfo(trackname)               
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /webjars/*file              controllers.WebJarAssets.at(file)

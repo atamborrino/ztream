@@ -52,12 +52,12 @@
 	cursor: pointer;
 }
 
-.hidden { 
-	display: none; 
-}
-
 .warning {
 	color: #C0392B;
+}
+
+.highlight {
+	font-weight: bold;
 }
 
 /*Fork me on Github CSS3 ribbon*/

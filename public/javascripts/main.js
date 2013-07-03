@@ -74,7 +74,6 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
   function P2PstreamRequest(seederConn) {
     seedChan = seederConn.createDataChannel(trackName, {reliable : true});
     seedChan.binaryType = 'arraybuffer';
-    // u.trace('Going to open DataChannel');
 
     seedChan.onopen = function() {
       u.trace('DataChannel opened');
@@ -89,7 +88,6 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
       if (!emergencyMode) {
         var binaryData = base64.decode(evt.data);
         var chunkNum = new Uint32Array(binaryData.slice(0,4))[0];
-        // u.trace('P2P: rcv: chunk '+chunkNum);
         if (chunkNum === track.length) {
           var chunk = binaryData.slice(4);
           track.push(chunk);
@@ -103,14 +101,7 @@ require(['helper/util','vendor/base64', 'vendor/jquery'], function(u, base64, $)
             mediaSource.endOfStream();
             $('#totalTime').text(u.formatTime(audio.duration)); // hack, should not be needed
           }
-        } else {
-          // u.trace('rcv chunk from P2P but wrong number');
         }
-      } else {
-        // u.trace('rcv chunk from P2P but emergency mode');
-        // ignoring chunk (it arrived too late!)
-        // TODO: implement 'stop' message ?
-      }
     };
 
     seedChan.onclose = function() {

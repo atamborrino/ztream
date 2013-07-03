@@ -28,13 +28,15 @@ object Application extends Controller {
   case class TrackMetaInfo(name: String, nbChunk: Long)
 
   def index = Action {
-    // only one track for now
-    val trackName = "gangnamstyle.webm"
+    Ok(views.html.main())
+  }
+
+  def getTrackMetaInfo(trackName: String) = Action {
     Async {
-      ServerStream.getNbChunks(trackName) map { nbChunk =>
-        Ok(views.html.index(TrackMetaInfo(trackName, nbChunk)))
+      ServerStream.getNbChunks(trackName) map { nbChunks =>
+        Ok(Json.obj("name" -> trackName, "nbChunks" -> nbChunks))
       } recover {
-        case _ => Ok(views.html.index(TrackMetaInfo("track not found (error)", 0)))
+        case _ => Ok(Json.obj("error" -> "track not found"))
       }
     }
   }
