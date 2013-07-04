@@ -59,6 +59,13 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
   var peerRequested = false;
   var seederIsSuspected = false; // suspected == maybeDead
 
+  // used with datachannel callbacks
+  function apply(fun) {
+    return function(event) {
+      $rootScope.$apply(function() {return fun(event);});
+    }
+  }
+
   // do a P2P stream request (leecher side)
   function P2PstreamRequest(seederConn) {
     seedChan = seederConn.createDataChannel(S.trackName, {reliable : true});
@@ -72,7 +79,7 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
       }
     };
 
-    seedChan.onmessage = function(evt) {
+    seedChan.onmessage = apply(function(evt) {
       seederIsSuspected = false;
       if (!emergencyMode) {
         var binaryData = base64.decode(evt.data);
@@ -88,12 +95,12 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
           }
         }
       }
-    };
+    });
 
     seedChan.onclose = function() {
       // Peer have closed the connection before the seeker have downloaded the full track
       if (seederConn) { // == if we have not suspected the seeder before (onclose can be delayed)
-        u.trace('data channel closed');
+        util.trace('data channel closed');
         seedChan = null;
         try {
           seederConn.close();
@@ -112,7 +119,7 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
     var trackWanted = chan.label;
     var cancellable;
 
-    chan.onmessage = function (evt) {
+    chan.onmessage = apply(function(evt) {
       util.trace('Receiving P2P stream request');
       var req = JSON.parse(evt.data);
       if (cancellable) {
@@ -141,13 +148,13 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
         }
       }
       sendProgressively();
-      cancellable = setInterval(sendProgressively, 1000);
-    };
+      cancellable = setInterval(apply(sendProgressively), 1000);
+    });
 
-    chan.onclose = function () {
+    chan.onclose = apply(function() {
       util.trace('datachannel closed');
       S.nbCurrentLeechers -= 1;
-    };
+    });
 
   }
 
