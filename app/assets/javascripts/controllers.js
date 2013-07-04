@@ -22,7 +22,7 @@ angular.module('ztream.controllers', ['ztream.services']).
         $scope.highlight = 'highlight';
         $timeout(function() {
           $scope.highlight = '';
-        }, 1000);
+        }, 800);
       }
     }
 
