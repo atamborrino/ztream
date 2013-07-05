@@ -399,10 +399,20 @@ services.factory('ctrlSocket', function(util, $rootScope) {
 services.factory('streamSocket', function(util, $rootScope) {
   var socket = new WebSocket(util.wsUrl('stream'));
   var callback;
-  socket.binaryType = 'arraybuffer';
-  socket.onmessage = function(event) {
-    if (callback) $rootScope.$apply(callback(event.data));
+
+  function setSocket() {
+    socket.binaryType = 'arraybuffer';
+    socket.onmessage = function(event) {
+      if (callback) $rootScope.$apply(callback(event.data));
+    }
+    socket.onclose = function() {
+      util.trace('reconnection to stream websocket');
+      socket = new WebSocket(util.wsUrl('stream'));
+      setSocket();
+    }
   }
+
+  setSocket();
   return {
     onChunk: function(cb) {
       callback = cb;
