@@ -403,6 +403,11 @@ services.factory('streamSocket', function(util, $rootScope) {
   socket.onmessage = function(event) {
     if (callback) $rootScope.$apply(callback(event.data));
   }
+  socket.onopen = function() {
+    setInterval(function() {
+      socket.send(util.str2ab('ping')); // dumb ping to keep the connection alive
+    }, 60000);
+  };
   return {
     onChunk: function(cb) {
       callback = cb;
