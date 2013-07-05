@@ -6,7 +6,8 @@ adaptive and transparent way in order to reduce server bandwidth costs while ens
 
 It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but *highly* simplified and transposed to the Web!
 
-**[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)**
+**[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)** (WebRTC reliable data channels are still not stable, so some bugs 
+may arise according to your network configuration that prevent the P2P streaming).
 
 ## How it works
 
