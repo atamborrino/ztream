@@ -41,6 +41,8 @@
                 <p ng-hide="P2Pplayer.compatible">Warning: your browser is 
                   <span class="warning {{highlight}}">not compatible</span> with Ztream. 
                   Please use the latest version of <a href="https://www.google.com/intl/en/chrome/browser/canary.html">Chrome Canary</a> / Chromium and set "Enable SCTP Data Channels" to true in chrome://flags (sadly Firefox does not support Media Source yet).</p>
+                <p ng-show="P2Pplayer.compatible">Note that WebRTC reliable data channels are still unstable so P2P streaming
+                  may not work according to your network configuration and/or OS.</p>
               </div>
             </div>
           </div>
