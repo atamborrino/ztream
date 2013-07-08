@@ -35,7 +35,7 @@ Note on audio format: Media Source currently only supports webm files (put in a 
 
 * Build a P2P overlay between peers in order to enable lookup requests without using the tracker (like in Spotify).
 
-* Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce streaming server bandwidth costs by orchestrating P2P communication between clients. If needeed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
+* Instead of proposing tracks from Mongo, tracks (chunks) may be directly streamed by the server from services like SoundCloud, making Ztream a proxy to reduce streaming server bandwidth costs by orchestrating P2P communication between clients. If needed, re-encoding could be done on the fly via ffmpeg thanks to [playCLI API](https://github.com/gre/playCLI) that allows to transform Linux pipes into Enumeratee!
 
 
 Feel free to fork and experiment =)
