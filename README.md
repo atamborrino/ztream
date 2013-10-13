@@ -6,7 +6,7 @@ adaptive and transparent way in order to reduce server bandwidth costs while ens
 
 It is inspired from the [architecture](http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf) of the Spotify's desktop client, but *highly* simplified and transposed to the Web!
 
-Works well in Chrome M30 (Chrome M31+ changed some things in Media source API + WebRTC data channels, and I haven't updated yet).
+Works well in Chrome M30 (Chrome M31+ introduced some changes in Media source API + WebRTC data channels, and I haven't updated yet).
 
 **[-> LIVE DEMO <-](http://ztream.atamborrino.cloudbees.net/)**
 

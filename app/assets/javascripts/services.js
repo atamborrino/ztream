@@ -21,24 +21,19 @@ services.factory('P2Pplayer', function(ctrlSocket, streamSocket, util, $http, $w
   var MediaSource = $window.MediaSource || $window.WebKitMediaSource || $window.mozMediaSource;
 
   function isCompatible() {
-    var compatible = false;
-    var pc;
-    try {
-      if (RTCPeerConnection && MediaSource) {
-        pc = new RTCPeerConnection({'iceServers': [{'url': STUN_SERVER}]},{ optional:[ { RtpDataChannels: true }]});
-        var dc = pc.createDataChannel('test', {reliable: true});
-        if (dc) {
-          compatible = true;
-        } 
+    if ($window.navigator.mozGetUserMedia) {
+      return false;
+    } else if ($window.navigator.webkitGetUserMedia){
+      var webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+      if (webrtcDetectedVersion !== 30) {
+        return false;
+      } else {
+        return true;
       }
-    } catch (e) {
-    } finally {
-      if (pc) {
-        pc.close();
-      }
+    } else {
+      return false;
     }
-    return compatible;
-  }
+  };
 
   S.compatible = isCompatible();
 
