@@ -38,11 +38,7 @@
                 <p>Streaming is performed by a combination of client-server access and P2P protocol between Web users. This is done in an 
                 <strong>adaptive and transparent</strong> way in order to <strong>reduce server bandwidth costs</strong> while ensuring <strong>low latency and smooth playback </strong>for users.</p>
                 <p>It is inspired from the <a href="http://www.csc.kth.se/~gkreitz/spotify-p2p10/spotify-p2p10.pdf">architecture</a> of the Spotify's desktop client, but <em>highly</em> simplified and transposed to the Web!</p>
-                <p ng-hide="P2Pplayer.compatible">Warning: your browser is 
-                  <span class="warning {{highlight}}">not compatible</span> with Ztream. 
-                  Please use the latest version of <a href="https://www.google.com/intl/en/chrome/browser/canary.html">Chrome Canary</a> / Chromium and set "Enable SCTP Data Channels" to true in chrome://flags (sadly Firefox does not support Media Source yet).</p>
-                <p ng-show="P2Pplayer.compatible">Note that WebRTC reliable data channels are not stable yet so P2P streaming
-                  may not work due to low-level bugs or according to your network configuration (a STUN server is used for NAT traversal). Open the Console for some logs.</p>
+                <p>Works well in Chrome M30 (Chrome M31+ changed some things in Media Source API + WebRTC data channels, and I haven't updated yet). Firefox didn't have an implementation of Media Source API at the time of writing.</p>
               </div>
             </div>
           </div>
